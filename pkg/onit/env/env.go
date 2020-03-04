@@ -153,6 +153,18 @@ type ClusterEnv interface {
 	// AddSimulators returns a new SimulatorsSetup for adding multiple simulators concurrently
 	AddSimulators(simulators ...SimulatorSetup) SimulatorsSetup
 
+	// NetconfAdapters returns the GNMI-NETCONF adapters environment
+	NetconfAdapters() NetconfAdaptersEnv
+
+	// NetconfAdapter returns the environment for a GNMI-NETCONF adapter by name
+	NetconfAdapter(name string) NetconfAdapterEnv
+
+	// NewNetconfAdapter returns a new NetconfAdapterSetup for adding a GNMI-NETCONF adapter to the cluster
+	NewNetconfAdapter() NetconfAdapterSetup
+
+	// AddNetconfAdapters returns a new NetconfAdaptersSetup for adding multiple GNMI-NETCONF adapters concurrently
+	AddNetconfAdapters(netconfAdapters ...NetconfAdapterSetup) NetconfAdaptersSetup
+
 	// Networks returns the networks environment
 	Networks() NetworksEnv
 
@@ -255,6 +267,27 @@ func (e *clusterEnv) AddSimulators(simulators ...SimulatorSetup) SimulatorsSetup
 	return &clusterSimulatorsSetup{
 		simulators: e.cluster.Simulators(),
 		setups:     make([]SimulatorSetup, 0),
+	}
+}
+
+func (e *clusterEnv) NetconfAdapters() NetconfAdaptersEnv {
+	return &clusterNetconfAdaptersEnv{
+		netconfAdapters: e.cluster.NetconfAdapters(),
+	}
+}
+
+func (e *clusterEnv) NetconfAdapter(name string) NetconfAdapterEnv {
+	return e.NetconfAdapters().Get(name)
+}
+
+func (e *clusterEnv) NewNetconfAdapter() NetconfAdapterSetup {
+	return e.NetconfAdapters().New()
+}
+
+func (e *clusterEnv) AddNetconfAdapters(simulators ...NetconfAdapterSetup) NetconfAdaptersSetup {
+	return &clusterNetconfAdaptersSetup{
+		netconfAdapters: e.cluster.NetconfAdapters(),
+		setups:          make([]NetconfAdapterSetup, 0),
 	}
 }
 

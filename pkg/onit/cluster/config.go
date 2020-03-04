@@ -23,6 +23,7 @@ const (
 	cmTestdeviceImageV2 = "onosproject/config-model-testdevice-2.0.0:latest"
 	cmDevicesimImage    = "onosproject/config-model-devicesim-1.0.0:latest"
 	cmStratumImage      = "onosproject/config-model-stratum-1.0.0:latest"
+	cmJunosImage        = "onosproject/config-model-junos-19.3.1.8:latest"
 	configService       = "onos-config"
 	configPort          = 5150
 )
@@ -40,6 +41,7 @@ const (
 	testDeviceNameV2   = "config-model-testdevice-2-0-0"
 	deviceSimName      = "config-model-devicesim-1-0-0"
 	stratumName        = "config-model-stratum-1-0-0"
+	junosName          = "config-model-junos-19-3-1-8"
 	modelPluginCommand = "/copylibandstay"
 )
 
@@ -66,6 +68,13 @@ var stratumArgs = []string{
 	"stayrunning",
 }
 
+var junosArgs = []string{
+	"junos.so.19.3.1.8",
+	"/usr/local/lib/shared/junos.so.19.3.1.8",
+	"stayrunning",
+}
+
+// TODO in future a reduce set of plugins be loaded by default
 var configArgs = []string{
 	"-caPath=/certs/onf.cacrt",
 	"-keyPath=/certs/onos-config.key",
@@ -74,6 +83,7 @@ var configArgs = []string{
 	"-modelPlugin=/usr/local/lib/shared/testdevice.so.2.0.0",
 	"-modelPlugin=/usr/local/lib/shared/devicesim.so.1.0.0",
 	"-modelPlugin=/usr/local/lib/shared/stratum.so.1.0.0",
+	"-modelPlugin=/usr/local/lib/shared/junos.so.19.3.1.8",
 }
 
 func newConfig(cluster *Cluster) *Config {
@@ -126,6 +136,16 @@ func newConfig(cluster *Cluster) *Config {
 	container.SetName(stratumName)
 	container.SetImage(cmStratumImage)
 	container.SetArgs(stratumArgs...)
+	container.SetCommand(modelPluginCommand)
+	volume = corev1.VolumeMount{Name: volumeName, MountPath: volumePath}
+	container.SetVolume(volume)
+	sideCars = append(sideCars, container)
+
+	// junos.so.19.3.1.8 model plugin
+	container = newSidecar(cluster)
+	container.SetName(junosName)
+	container.SetImage(cmJunosImage)
+	container.SetArgs(junosArgs...)
 	container.SetCommand(modelPluginCommand)
 	volume = corev1.VolumeMount{Name: volumeName, MountPath: volumePath}
 	container.SetVolume(volume)

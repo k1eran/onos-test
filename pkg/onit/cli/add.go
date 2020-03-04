@@ -38,9 +38,10 @@ var (
 )
 
 const (
-	defaultMininetImage      = "opennetworking/mn-stratum:latest"
-	defaultSimulatorImage    = "onosproject/device-simulator:latest"
-	defaultRANSimulatorImage = "onosproject/ran-simulator:latest"
+	defaultMininetImage        = "opennetworking/mn-stratum:latest"
+	defaultSimulatorImage      = "onosproject/device-simulator:latest"
+	defaultNetconfAdapterImage = "onosproject/gnmi-netconf-adapter:latest"
+	defaultRANSimulatorImage   = "onosproject/ran-simulator:latest"
 )
 
 // getAddCommand returns a cobra "add" command for adding resources to the cluster
@@ -51,6 +52,7 @@ func getAddCommand() *cobra.Command {
 		Example: addExample,
 	}
 	cmd.AddCommand(getAddSimulatorCommand())
+	cmd.AddCommand(getAddNetconfAdapterCommand())
 	cmd.AddCommand(getAddRANSimulatorCommand())
 	cmd.AddCommand(getAddNetworkCommand())
 	cmd.AddCommand(getAddAppCommand())
@@ -116,6 +118,21 @@ func getAddSimulatorCommand() *cobra.Command {
 	return cmd
 }
 
+// getAddNetconfAdapterCommand returns a cobra command for deploying a GNMI-NETCONF adapter
+func getAddNetconfAdapterCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "gnmi-netconf-adapter [args]",
+		Short: "Add a GNMI-NETCONF adapter to the test cluster",
+		Args:  cobra.NoArgs,
+		RunE:  runInCluster(runAddNetconfAdapterCommand),
+	}
+
+	cmd.Flags().StringP("name", "n", "", "the name to assign to the GNMI-NETCONF adapter")
+	cmd.Flags().StringP("image", "i", defaultNetconfAdapterImage, "the image to deploy")
+	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
+	return cmd
+}
+
 func runAddSimulatorCommand(cmd *cobra.Command, _ []string) error {
 	setupCommand(cmd)
 
@@ -130,6 +147,29 @@ func runAddSimulatorCommand(cmd *cobra.Command, _ []string) error {
 
 	env := env.New(kubeAPI)
 	_, err = env.Simulators().
+		New().
+		SetName(getName(cmd)).
+		SetPort(11161).
+		SetImage(image).
+		SetPullPolicy(pullPolicy).
+		Add()
+	return err
+}
+
+func runAddNetconfAdapterCommand(cmd *cobra.Command, _ []string) error {
+	setupCommand(cmd)
+
+	image, _ := cmd.Flags().GetString("image")
+	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
+	pullPolicy := corev1.PullPolicy(imagePullPolicy)
+
+	kubeAPI, err := kube.GetAPI(getCluster(cmd))
+	if err != nil {
+		return err
+	}
+
+	env := env.New(kubeAPI)
+	_, err = env.NetconfAdapters().
 		New().
 		SetName(getName(cmd)).
 		SetPort(11161).

@@ -41,6 +41,7 @@ func New(kube kube.API) *Cluster {
 	cluster.ran = newRAN(cluster)
 	cluster.apps = newApps(cluster)
 	cluster.simulators = newSimulators(cluster)
+	cluster.netconfAdapters = newNetconfAdapters(cluster)
 	cluster.networks = newNetworks(cluster)
 	cluster.history = newHistory(cluster)
 	return cluster
@@ -49,16 +50,17 @@ func New(kube kube.API) *Cluster {
 // Cluster facilitates modifying subsystems in Kubernetes
 type Cluster struct {
 	*client
-	atomix     *Atomix
-	database   *Storage
-	cli        *CLI
-	topo       *Topo
-	config     *Config
-	ran        *RAN
-	apps       *Apps
-	simulators *Simulators
-	networks   *Networks
-	history    *History
+	atomix          *Atomix
+	database        *Storage
+	cli             *CLI
+	topo            *Topo
+	config          *Config
+	ran             *RAN
+	apps            *Apps
+	simulators      *Simulators
+	netconfAdapters *NetconfAdapters
+	networks        *Networks
+	history         *History
 }
 
 // Atomix returns the Atomix service
@@ -99,6 +101,11 @@ func (c *Cluster) Apps() *Apps {
 // Simulators returns the cluster simulators
 func (c *Cluster) Simulators() *Simulators {
 	return c.simulators
+}
+
+// NetconfAdapters returns the cluster GNMI-NETCONF adapters
+func (c *Cluster) NetconfAdapters() *NetconfAdapters {
+	return c.netconfAdapters
 }
 
 // Networks returns the cluster networks
