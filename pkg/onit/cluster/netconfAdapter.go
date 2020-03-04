@@ -39,7 +39,7 @@ const (
 	netconfAdapterDeviceType     = "Junos"
 	netconfAdapterDeviceVersion  = "19.3.1.8"
 	netconfAdapterSecurePortName = "secure"
-	netconfAdapterSecurePort     = 10161
+	netconfAdapterSecurePort     = 11161
 	netconfAdapterGnmiPortEnv    = "GNMI_PORT"
 )
 
